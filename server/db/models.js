@@ -8,6 +8,7 @@ var SentenceSchema =  new mongoose.Schema({
     ch: String,                 // 中文（翻译）
     chapterId: ObjectId,        // 隶属于某章节
     count: Number,              // 复习次数
+    lastTime: Date,             // 上次复习时间
 })
 
 var ChapterSchema = new mongoose.Schema({

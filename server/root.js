@@ -1,7 +1,7 @@
 // var urlConfig = require('../src/utils/config.js');
 
 module.exports = function(app,dir,){
-	app.get('/', function (req, res) {
+	app.get('*', function (req, res) {
 		console.log('/ call')
 	  res.sendFile( dir + '/build/index.html');
 	});

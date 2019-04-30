@@ -1,0 +1,2 @@
+export const UPDATE_CHAPTER_LIST = "UPDATE_CHAPTER_LIST"
+export const UPDATE_BOOK = "UPDATE_BOOK"

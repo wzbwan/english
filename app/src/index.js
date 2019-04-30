@@ -2,37 +2,21 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
-
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 import * as serviceWorker from './serviceWorker';
 import ChapterListView from './pages/ChapterListView';
 import SentenceListView from './pages/SentenceListView';
-
+import { Provider } from 'react-redux';
+import Store from './redux/store/store';
 class Wrapper extends React.Component {
     render() {
         return (
-            <div>
+            <Provider store={Store()}>
                 {this.props.children}
-            </div>
+            </Provider>
         )
-
     }
 }
-
-const B = () => (
-    <div>
-        <Link to='/a'>组件A</Link>
-        <h1>B component</h1>
-    </div>
-)
-
-const A = () => (
-    <div>
-        <Link to='/b'>组件B</Link>
-        <Link to='/'>Home</Link>
-        <h1>A component</h1>
-    </div>
-)
 
 
 ReactDOM.render(<Router>

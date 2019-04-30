@@ -10,10 +10,14 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
+import IconButton from '@material-ui/core/IconButton'
+import DeleteIcon from '@material-ui/icons/Delete';
+import BookIcon from '@material-ui/icons/Book';
 import fetchData from './tools/fetchData';
 import './App.css';
 import CreateNewBookModal from './components/CreateNewBookModal';
-
+import ConfirmModal from './components/ConfirmModal';
 
 const styles = theme => ({
   root: {
@@ -36,6 +40,9 @@ class App extends Component {
   state = {
     books:[],
     createBookModalOpen:false,
+    confirmModalOpen:false,
+    selectedId:'',
+    selectedName:'',
   }
 
   createBookClose = () => {
@@ -57,6 +64,25 @@ class App extends Component {
     this.createBookClose();
   }
 
+  openConfirmModal = (id,name) => {
+    this.setState({confirmModalOpen:true,selectedId:id,selectedName:name});
+  }
+
+  confirmModalClose = () => {
+    this.setState({confirmModalOpen:false})
+  }
+
+  handleConfirm = (id) => {
+    fetchData("/deleteBook",{bookId:id}).then(
+      res => {
+        if (res.status === 1) {
+          this.fetchBooks();
+        }
+      }
+    )
+    this.confirmModalClose();
+  }
+
   fetchBooks = () => {
     fetchData("/getBooks", {}).then(
       response => {
@@ -72,6 +98,7 @@ class App extends Component {
   }
 
   componentDidMount = () => {
+    console.log(this.props)
     this.fetchBooks();
   }
 
@@ -90,18 +117,26 @@ class App extends Component {
         <List className={classes.list}>
           {books.map((book,index)=>{
             return (
-              <Link key={index} style={{ textDecoration: 'none' }} to={'/chapter/'+book._id}>
-              <ListItem>
+              <ListItem key={index}>
+                
+
                 <Avatar>
-                  {index}
+                  <BookIcon/>
                 </Avatar>
-                <ListItemText primary={book.name} secondary="Jan 9, 2014" />
+                  <Link style={{ textDecoration: 'none', marginLeft: 8 }} to={"/chapter/" + book._id}>
+                    <ListItemText primary={book.name} secondary="Jan 9, 2014" />
+                  </Link>
+                  <ListItemSecondaryAction>
+                    <IconButton aria-label="Delete" onClick={() => { this.openConfirmModal(book._id, book.name) }} >
+                      <DeleteIcon />
+                    </IconButton>
+                  </ListItemSecondaryAction>
               </ListItem>
-              </Link>
             )
           })}
         </List>
         <CreateNewBookModal open={this.state.createBookModalOpen} close={this.createBookClose} submit={this.createBookSubmit} />
+        <ConfirmModal open={this.state.confirmModalOpen} close={this.confirmModalClose} confirm={this.handleConfirm} id={this.state.selectedId} name={this.state.selectedName} />
       </div>
     );
   }

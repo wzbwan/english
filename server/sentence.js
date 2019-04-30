@@ -41,6 +41,16 @@ module.exports = function (app, SentenceModel) {
         })
     })
 
+    app.post('/sentenceReviewCountPlus', function(req, res){
+        SentenceModel.update({ _id: req.body.sentenceId }, { $inc: { count: 1 } },{ multi: false }, function(err){
+            if (!err) {
+                res.json({
+                    status: 1
+                })
+            }
+        });
+    })
+
     app.post('/getSentenceByChapterId', function (req, res) {
         console.log('/getSentenceByChapterId call')
         var skip = 0;

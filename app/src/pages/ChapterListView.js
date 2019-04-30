@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
@@ -11,8 +12,19 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import fetchData from '../tools/fetchData';
-
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction'
+import IconButton from '@material-ui/core/IconButton'
+import DeleteIcon from '@material-ui/icons/Delete';
+import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 import CreateNewChapterModal from '../components/CreateNewChapterModal';
+import ConfirmModal from '../components/ConfirmModal';
+import { updateChapterList, updateBook } from '../redux/actions/mainAction';
+
+function mapStateToProps(state) {
+    return {
+        chapterList: state.mainReducer.chapterList,
+    };
+}
 
 const styles = theme => ({
     root: {
@@ -33,8 +45,10 @@ const styles = theme => ({
 
 class ChapterListView extends Component {
     state = {
-        chapters: [],
         createChapterModalOpen: false,
+        confirmModalOpen: false,
+        selectedId: '',
+        selectedName: '',
     }
 
     createChapterClose = () => {
@@ -56,11 +70,32 @@ class ChapterListView extends Component {
         this.createChapterClose();
     }
 
+    openConfirmModal = (id, name) => {
+        this.setState({ confirmModalOpen: true, selectedId: id, selectedName: name });
+    }
+
+    confirmModalClose = () => {
+        this.setState({ confirmModalOpen: false })
+    }
+
+    handleConfirm = (id) => {
+        fetchData("/deleteChapter", { chapterId: id }).then(
+            res => {
+                if (res.status === 1) {
+                    this.fetchChapters();
+                }
+            }
+        )
+        this.confirmModalClose();
+    }
+
     fetchChapters = () => {
         fetchData("/getChaptersByBookId", { bookId: this.props.match.params.bookId }).then(
             response => {
                 if (response.status === 1) {
-                    this.setState({ chapters: response.data });
+                    this.props.dispatch(updateChapterList(response.data))
+                    
+                    // this.setState({ chapters: response.data });
                 } else {
                     // 
                 }
@@ -71,13 +106,13 @@ class ChapterListView extends Component {
     }
 
     componentDidMount = () => {
+        this.props.dispatch(updateBook(this.props.match.params.bookId))
         this.fetchChapters();
     }
 
 
     render() {
-        const { classes } = this.props;
-        const { chapters } = this.state;
+        const { classes, chapterList } = this.props;
         return (
             <div>
                 <AppBar position="static">
@@ -86,20 +121,27 @@ class ChapterListView extends Component {
                     </Toolbar>
                 </AppBar>
                 <List className={classes.list}>
-                    {chapters.map((chapter, index) => {
+                    {chapterList.map((chapter, index) => {
                         return (
-                            <Link key={index} style={{ textDecoration: 'none' }} to={"/sentence/"+chapter._id}>
-                                <ListItem>
-                                    <Avatar>
-                                        {index}
-                                    </Avatar>
-                                    <ListItemText primary={chapter.name} secondary="Jan 9, 2014" />
-                                </ListItem>
+                        <ListItem key={index}>
+                                <Avatar>
+                                    <LibraryBooksIcon />
+                                </Avatar>
+                            <Link  style={{ textDecoration: 'none', marginLeft:8 }} to={"/sentence/" + chapter._id}>
+                                <ListItemText primary={chapter.name} secondary="Jan 9, 2014" />
                             </Link>
+                                <ListItemSecondaryAction>
+                                    <IconButton aria-label="Delete" onClick={() => { this.openConfirmModal(chapter._id, chapter.name) }}>
+                                        <DeleteIcon />
+                                    </IconButton>
+                                </ListItemSecondaryAction>
+                        </ListItem>
                         )
                     })}
                 </List>
                 <CreateNewChapterModal open={this.state.createChapterModalOpen} close={this.createChapterClose} submit={this.createChapterSubmit} />
+                <ConfirmModal open={this.state.confirmModalOpen} close={this.confirmModalClose} confirm={this.handleConfirm} id={this.state.selectedId} name={this.state.selectedName} />
+
             </div>
         );
     }
@@ -109,4 +151,6 @@ ChapterListView.propTypes = {
     classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(ChapterListView);
+export default connect(
+    mapStateToProps,
+)(withStyles(styles)(ChapterListView));
